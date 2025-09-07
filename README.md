@@ -60,7 +60,7 @@ TESS_LANG=eng                # 日本語OCRするなら jpn+eng に
 
 ## 依存
 brew install tesseract            # macOS（英語OCR）
-# 日本語のOCRしたい場合
+## 日本語のOCRしたい場合
 brew install tesseract-lang       # jpn などの追加辞書
 
 ## 起動
