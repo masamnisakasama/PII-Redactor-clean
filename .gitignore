@@ -7,3 +7,17 @@ models/*.caffemodel
 models/*.prototxt
 out*.png
 *.log
+# venv / caches
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# secrets
+.env
+
+# local models / weights
+models/
+*.onnx
+*.pb
+*.pt
