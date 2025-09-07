@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.DS_Store
+.env
+models/*.pb
+models/*.caffemodel
+models/*.prototxt
+out*.png
+*.log
