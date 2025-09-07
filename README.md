@@ -46,7 +46,7 @@
 
 
 ## .env例と依存
-# 既定は offline。オンラインにしたい時はフォーム側で mode=online を渡してもOK
+既定は offline。オンラインにしたい時はフォーム側で mode=online を渡してもOK<br>
 MODE=offline　<br>
 ONLINE_FALLBACK_OFFLINE=1
 
