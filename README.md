@@ -1,4 +1,4 @@
-## PII-Redactor-clean
+# PII-Redactor-clean
 
 **PII-Redactor-clean** は、スパゲッティ化していた旧実装（PII-Redactor）を**壊さず動くこと最優先**で再構成した移送版です。  
 目的は **読みやすさ・機能分離・拡張性** の確保（リファクタリング中心）で、オンライン/オフライン処理の切替や将来の検出器差し替えが簡単にできる構成にしています。
@@ -15,7 +15,6 @@
 
 ---
 
-## ファイル構成
 ## ファイル構成
 
 ```plaintext
@@ -45,21 +44,21 @@
 
 
 
-## .env例と依存
+# .env例と依存
 既定は offline。オンラインにしたい時はフォーム側で mode=online を渡してもOK<br>
 MODE=offline　<br>
 ONLINE_FALLBACK_OFFLINE=1
 
-# オンライン（Gemini）
+## オンライン（Gemini）
 GEMINI_API_KEY=xxxxx_your_key_xxxxx <br>
 GEMINI_IMAGE_MODEL=gemini-2.5-flash-image-preview <br>
 GEMINI_API_BASE=https://generativelanguage.googleapis.com/v1beta
 
-# オフラインOCR
+## オフラインOCR
 OCR_BACKEND=tesseract        <br>
 TESS_LANG=eng                # 日本語OCRするなら jpn+eng に
 
-# 依存
+## 依存
 brew install tesseract            # macOS（英語OCR）
 # 日本語のOCRしたい場合
 brew install tesseract-lang       # jpn などの追加辞書
