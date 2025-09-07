@@ -1,4 +1,4 @@
-# PII-Redactor-clean
+## PII-Redactor-clean
 
 **PII-Redactor-clean** は、スパゲッティ化していた旧実装（PII-Redactor）を**壊さず動くこと最優先**で再構成した移送版です。  
 目的は **読みやすさ・機能分離・拡張性** の確保（リファクタリング中心）で、オンライン/オフライン処理の切替や将来の検出器差し替えが簡単にできる構成にしています。
@@ -15,33 +15,36 @@
 ---
 
 ## ファイル構成
+## ファイル構成
+
+```plaintext
 /app
 ├── core
-│ ├── pipeline.py # online/offline 切替の統括
-│ ├── pipeline_offline.py # オフライン統合（顔/テキスト検出→マスク）
-│ ├── pipeline_online.py # オンライン統合（Geminiへ編集依頼）
-│ ├── online_gemini.py # Gemini呼び出し（画像+プロンプト→編集画像）
-│ ├── online_prompt.py # オンライン顔変換・PII用プロンプト生成（★追加）
-│ ├── offline_detectors.py # 既存のオフライン検出（Tesseract/EAST等）
-│ ├── face_cv2.py # 顔検出のOpenCV実装
-│ └── paint.py # マスク描画
+│   ├── pipeline.py               # online/offline 切替の統括
+│   ├── pipeline_offline.py       # オフライン統合（顔/テキスト検出→マスク）
+│   ├── pipeline_online.py        # オンライン統合（Gemini へ編集依頼）
+│   ├── online_gemini.py          # Gemini 呼び出し（画像+プロンプト→編集画像）
+│   ├── online_prompt.py          # オンライン顔変換・PII 用プロンプト生成
+│   ├── offline_detectors.py      # 既存のオフライン検出（Tesseract/EAST 等）
+│   ├── face_cv2.py               # 顔検出の OpenCV 実装
+│   └── paint.py                  # マスク描画
 ├── routers
-│ ├── redact.py # /redact/replace（★face_style/face_spec対応）
-│ ├── health.py # /health, /v1/health, /capabilities
-│ └── diag.py # 診断（キー末尾など）
+│   ├── redact.py                 # /redact/replace（face_style/face_spec 対応）
+│   ├── health.py                 # /health, /v1/health, /capabilities
+│   └── diag.py                   # 診断（キー末尾など）
 └── main.py
+
 /models
-└── （EAST等のモデル置き場。自動DL試行にはなっているが、ローカルファイルで使用可にする予定）
+└── （EAST 等のモデル置き場。自動 DL 試行あり。将来はローカル固定運用を推奨）
+
 /scripts
 ├── regression.sh
 └── regression_online.sh
+```
 
-# 依存
-brew install tesseract            # macOS（英語OCR）
-# 日本語のOCRしたい場合
-brew install tesseract-lang       # jpn などの追加辞書
 
-## .env例
+
+## .env例と依存
 # 既定は offline。オンラインにしたい時はフォーム側で mode=online を渡してもOK
 MODE=offline　<br>
 ONLINE_FALLBACK_OFFLINE=1
@@ -55,6 +58,11 @@ GEMINI_API_BASE=https://generativelanguage.googleapis.com/v1beta
 OCR_BACKEND=tesseract        <br>
 TESS_LANG=eng                # 日本語OCRするなら jpn+eng に
 
-# 起動
+# 依存
+brew install tesseract            # macOS（英語OCR）
+# 日本語のOCRしたい場合
+brew install tesseract-lang       # jpn などの追加辞書
+
+## 起動
 PYTHONPATH="$(pwd)" uvicorn app.main:app \ <br>
   --host 127.0.0.1 --port 8000 --env-file .env --reload
