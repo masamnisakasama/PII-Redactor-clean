@@ -54,7 +54,7 @@
 ```
 
 # .env例
-#＃ === モデルパス ===（fetch_models.shの配置先）<br>
+## === モデルパス ===（fetch_models.shの配置先）<br>
 EAST_MODEL_PATH=models/frozen_east_text_detection.pb <br>
 YUNET_MODEL_PATH=models/face_detection_yunet_2023mar.onnx <br>
 HAAR_MODEL_PATH=models/haarcascade_frontalface_default.xml <br>
@@ -62,7 +62,7 @@ YOLO_DET_PATH=models/yolov8n.pt <br>
 YOLO_SEG_PATH=models/yolov8n-seg.pt <br>
 
 ## === モード ===
-MODE=offline                     # online にしたい時はフォームで mode=online でもOK <br>
+MODE=offline   online にしたい時はフォームで mode=online でもOK <br>
 ONLINE_FALLBACK_OFFLINE=1 <br>
 
 ## === オンライン(Gemini) ===
@@ -73,9 +73,9 @@ GEMINI_API_BASE=https://generativelanguage.googleapis.com/v1beta <br>
 ## === 顔検出バックエンド（haar | yunet | yolo | dnn）=== 
 FACE_BACKEND=haar <br>
 
-# === テキスト検出/認識（tesseract | east）===
+## === テキスト検出/認識（tesseract | east）===
 TEXT_BACKEND=tesseract <br>
-TESS_LANG=eng               # 日本語OCRするなら jpn+eng（要 tesseract-lang） <br>
+TESS_LANG=eng       日本語OCRするなら jpn+eng（要 tesseract-lang） <br>
 
 ## === ローカルモデルパス ===
 EAST_MODEL_PATH=models/frozen_east_text_detection.pb <br>
@@ -87,9 +87,9 @@ DNN_CAFFE_MODEL=models/res10_300x300_ssd_iter_140000.caffemodel <br>
 
 
 ## 依存
-brew install tesseract            # macOS（英語OCR） <br>
+brew install tesseract   macOS（英語OCR） <br>
 ## 日本語のOCRしたい場合 
-brew install tesseract-lang       # jpn などの追加辞書 <br>
+brew install tesseract-lang jpn などの追加辞書 <br>
 
 ## 起動
 PYTHONPATH="$(pwd)" uvicorn app.main:app \ <br>
