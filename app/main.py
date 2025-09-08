@@ -1,3 +1,4 @@
+# /app/main.py
 from fastapi import FastAPI
 from app.routers.health import router as health
 from app.routers.redact import router as redact
