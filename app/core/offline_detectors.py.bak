@@ -113,7 +113,7 @@ def tokens_east_tess(img_bgr):
     rects,_=model.detect(img_bgr)
     toks=[]
     for (x,y,w,h) in rects:
-        x, y, w, h = _to_int_bb(x, y, w, h)
+        x,y,w,h=map(int,(x,y,w,h))
         roi=img_bgr[max(0,y-2):y+h+2, max(0,x-2):x+w+2]
         try:
             import pytesseract

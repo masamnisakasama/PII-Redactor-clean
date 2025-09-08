@@ -14,7 +14,7 @@ async def redact_replace(
     mode: str | None = Form(None),
 ):
     image_bytes = await file.read()
-    mime_type = file.content_type  # ← 追加
+    mime_type = file.content_type  
     bio, boxes = redact_bytes(image_bytes, policy, style, mode=mode, mime_type=mime_type)
     return StreamingResponse(
         bio,

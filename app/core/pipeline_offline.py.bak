@@ -13,12 +13,6 @@ def redact_bytes_offline(image_bytes: bytes, policy_csv: str, style: str = "box"
             boxes += detect_faces(img)
         except Exception:
             pass
-    # テキスト系ポリシーが指定された場合のみ OCR を実行
-TEXT_POLICIES = {
-    "email","phone","address","id","name","amount","date",
-    "plate","nationalid","zipcode","creditcard","ssn"
-}
-if policy & TEXT_POLICIES:
     toks = tokens(img)
     boxes += match_pii(toks, policy)
 
