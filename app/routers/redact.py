@@ -22,5 +22,6 @@ async def redact_replace(
         headers={
             "X-PII-Boxes": str(len(boxes)),
             "X-Mode": (mode or os.getenv("MODE", "offline")),
+            "X-Style": (style or "box"),
         },
     )
