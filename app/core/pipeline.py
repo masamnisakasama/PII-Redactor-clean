@@ -1,3 +1,5 @@
+# app/core/pipeline.py
+
 from typing import Tuple, List, Optional, Dict, Any
 import io, os
 from .pipeline_offline import redact_bytes_offline
