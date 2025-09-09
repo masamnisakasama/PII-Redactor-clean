@@ -21,3 +21,8 @@ models/
 *.onnx
 *.pb
 *.pt
+
+# anime/comix models
+models/animegan/*.onnx
+models/comixgan/*.onnx
+.env

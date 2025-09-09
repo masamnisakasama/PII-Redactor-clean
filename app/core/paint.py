@@ -1,6 +1,7 @@
 # app/core/paint.py
 import cv2, numpy as np, os
 from PIL import Image, ImageDraw, ImageFont
+from .stylers.animegan_onnx import animegan_stylize
 
 def _clip(img,x,y,w,h):
     H,W=img.shape[:2]; x=max(0,min(x,W-1)); y=max(0,min(y,H-1))
@@ -75,6 +76,27 @@ def apply(img, boxes, style="box"):
             img = readable(img, b)
         elif style == "cartoon":                 
             img = _apply_cartoon(img, b, pad_ratio)
+        elif style == "anime":
+            img = _apply_anime(img, b, pad_ratio)
         else:
             img = box(img, b)
+    return img
+
+def _apply_anime(img, b, pad_ratio: float):
+    x, y, w, h = _pad_clip(img, *b, pad=pad_ratio)
+    roi = img[y:y+h, x:x+w]
+    try:
+        styled = animegan_stylize(roi)
+    except Exception:
+        styled = roi
+    img[y:y+h, x:x+w] = styled
+    return img
+
+def stylize_full(img, style: str):
+    s = (style or "").lower()
+    if s == "anime_full":
+        try:
+            return animegan_stylize(img)
+        except Exception:
+            return img
     return img

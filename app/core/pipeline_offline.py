@@ -1,8 +1,10 @@
 # app/core/pipeline_offline.py
 import io
+import os
 from PIL import Image
 from .offline_detectors import bgr_from_bytes, detect_faces, tokens, match_pii
 from .paint import apply
+from .paint import stylize_full
 
 # テキスト系ポリシー（モジュールレベルで定義：インデントの罠を避ける）
 TEXT_POLICIES = {
@@ -32,6 +34,10 @@ def redact_bytes_offline(image_bytes: bytes, policy_csv: str, style: str = "box"
             pass
 
     out = apply(img.copy(), boxes, (style or "box"))
+
+    mode = (os.getenv("PII_IMAGES_MODE", "") or "").lower()  # 例: anime_full
+    if mode:
+        out = stylize_full(out, mode)
     bio = io.BytesIO()
     Image.fromarray(out[:, :, ::-1].copy()).save(bio, format="PNG")  # BGR→RGB
     bio.seek(0)

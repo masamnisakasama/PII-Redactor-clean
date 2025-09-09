@@ -46,5 +46,41 @@ if [[ ! -s "$DNN_FP32" && ! -s "$DNN_FP16" ]]; then
   fi
 fi
 
+: "${MODELS_DIR:=models}"
+: "${ANIMEGAN_HAYAO_URL:=}"
+: "${ANIMEGAN_PAPRIKA_URL:=}"
+: "${COMIXGAN_URL:=}"
+
+# ディレクトリも未定義ならデフォルトを代入
+: "${ANIME_DIR:=${MODELS_DIR}/animegan}"
+: "${COMIX_DIR:=${MODELS_DIR}/comixgan}"
+
+mkdir -p "$ANIME_DIR" "$COMIX_DIR"
+
+echo "==> (optional) Download AnimeGAN (ONNX)"
+ANIME_HAYAO="${ANIME_DIR}/${ANIMEGAN_HAYAO_BASENAME:-AnimeGANv2_Hayao.onnx}"
+ANIME_PAPRIKA="${ANIME_DIR}/${ANIMEGAN_PAPRIKA_BASENAME:-AnimeGANv2_Paprika.onnx}"
+
+if [[ -n "$ANIMEGAN_HAYAO_URL" ]]; then
+  [[ -s "$ANIME_HAYAO" ]] || (curl -L --fail --retry 3 --retry-delay 2 -o "${ANIME_HAYAO}.part" "$ANIMEGAN_HAYAO_URL" && mv "${ANIME_HAYAO}.part" "$ANIME_HAYAO" || true)
+else
+  echo "  (skip) set ANIMEGAN_HAYAO_URL to download (or place ONNX at: $ANIME_HAYAO)"
+fi
+
+if [[ -n "$ANIMEGAN_PAPRIKA_URL" ]]; then
+  [[ -s "$ANIME_PAPRIKA" ]] || (curl -L --fail --retry 3 --retry-delay 2 -o "${ANIME_PAPRIKA}.part" "$ANIMEGAN_PAPRIKA_URL" && mv "${ANIME_PAPRIKA}.part" "$ANIME_PAPRIKA" || true)
+fi
+
+echo "==> (optional) Download ComixGAN (ONNX)"
+COMIX_ONNX="${COMIX_DIR}/${COMIXGAN_BASENAME:-ComixGAN.onnx}"
+if [[ -n "$COMIXGAN_URL" ]]; then
+  [[ -s "$COMIX_ONNX" ]] || (curl -L --fail --retry 3 --retry-delay 2 -o "${COMIX_ONNX}.part" "$COMIXGAN_URL" && mv "${COMIX_ONNX}.part" "$COMIX_ONNX" || true)
+else
+  echo "  (skip) set COMIXGAN_URL to download (or place ONNX at: $COMIX_ONNX)"
+fi
+
+# 一覧
 echo "==> Done. Files in $MODELS_DIR"
-ls -lh "$MODELS_DIR"
+ls -lh "$MODELS_DIR" || true
+[[ -d "$ANIME_DIR" ]] && echo "--- animegan ---" && ls -lh "$ANIME_DIR" || true
+[[ -d "$COMIX_DIR"  ]] && echo "--- comixgan ---" && ls -lh "$COMIX_DIR"  || true
