@@ -26,3 +26,9 @@ models/
 models/animegan/*.onnx
 models/comixgan/*.onnx
 .env
+
+# === RAG / outputs ===
+vectorstore/
+out_*.png
+hdr*.txt
+
