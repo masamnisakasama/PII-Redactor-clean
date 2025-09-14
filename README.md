@@ -2,14 +2,14 @@
 
 **PII-Redactor-clean** は、スパゲッティ化していた旧実装（PII-Redactor）を**壊さず動くこと最優先**で再構成した移送版です。  
 目的は **読みやすさ・機能分離・拡張性** の確保（リファクタリング中心）で、オンライン/オフライン処理の切替や将来の検出器差し替えが簡単にできる構成にしています。
-非常に重要な事として、機能をちゃんとファイルごとに分離する事と、main.pyを肥大化させないことが変更点です。
+非常に重要な事として、機能をちゃんとファイルごとに分離する事と、main.pyを肥大化させないことを重視しています。
 
 ---
 
 ## 内容
 - 基本的には旧版と同じです
 - 画像の **顔** と **テキストPII**（メール/電話/ID/住所など）をマスク
-- **モード**: オフライン（OpenCV/Tesseract） / オンライン（Gemini）を切替
+- **モード**: オフライン　テキスト（OpenCV/Tesseract） 顔検出 (haar|yunet|dnn|yolo） オンライン（Gemini）を切替
 - **オンライン顔変換**: スタイル選択（`synthetic/anime/cartoon/emoji/pixel/old/3d/blur`）
 - API は **FastAPI**。`/redact/replace` に画像を投げると **PNG をストリーム返却**（サーバ保存しない）
 
@@ -17,52 +17,83 @@
 
 ## ファイル構成
 
-```plaintext
+<!-- FILE TREE START -->
+```text
 /app
-├── core
-│   ├── pipeline.py               # online/offline 切替の統括
-│   ├── pipeline_offline.py       # オフライン統合（顔/テキスト検出→マスク）
-│   ├── pipeline_online.py        # オンライン統合（Gemini へ編集依頼）
-│   ├── online_gemini.py          # Gemini 呼び出し（画像+プロンプト→編集画像）
-│   ├── online_prompt.py          # オンライン顔変換・PII 用プロンプト生成
-│   ├── offline_detectors.py      # 既存のオフライン検出（Tesseract/EAST 等）
-│   ├── face_cv2.py               # 顔検出の OpenCV 実装
-│   └── paint.py                  # マスク描画
-├── routers
-│   ├── redact.py                 # /redact/replace（face_style/face_spec 対応）
-│   ├── health.py                 # /health, /v1/health, /capabilities
-│   └── diag.py                   # 診断（キー末尾など）
-└── main.py
+├─ core
+│  ├─ config.py                 # 環境変数/モデルパス/閾値
+│  ├─ face_cv2.py               # 顔検出 (haar|yunet|dnn|yolo 切替可能に変更)
+│  ├─ offline_detectors.py      # 文字検出 (tesseract|EAST)
+│  ├─ online_gemini.py          # Gemini 呼び出し (画像編集)
+│  ├─ online_prompt.py          # 顔変換/PII 用プロンプト生成
+│  ├─ paint.py                  # マスク描画（黒塗り等）
+│  ├─ pipeline.py               # online/offline を統括するパイプラインとFB
+│  ├─ pipeline_offline.py       # オフライン統合（顔やテキスト→マスク）
+│  └─ pipeline_online.py        # オンライン統合（GeminiのNanobanana使用）
+├─ routers
+│  ├─ redact.py                 # /redact/replace (リダクト用エンドポイント)
+│  ├─ health.py                 # /health,/capabilities
+│  └─ diag.py                   # /diag 
+└─ main.py
 
-/models
-└── （EAST 等のモデル置き場。自動 DL 試行あり。将来はローカル固定運用を推奨）
+/models                           # 事前DLモデル置き場（scriptsで取得）
+├─ deploy.prototxt                # DNN (Caffe) prototxt
+├─ res10_300x300_ssd_iter_140000.caffemodel    # DNN fp32
+├─ face_detection_yunet_2023mar.onnx           # YuNet (ONNX)
+├─ frozen_east_text_detection.pb               # EAST (PB)
+├─ haarcascade_frontalface_default.xml         # Haar
+├─ yolov8n.pt                                   # YOLOv8 (det)
+└─ yolov8n-seg.pt                               # YOLOv8 (seg, 任意)
 
 /scripts
-├── regression.sh
-└── regression_online.sh
+├─ devserve.sh                 # FACE_BACKEND 指定でuvicorn起動
+├─ fetch_models.sh             # モデル一括DL（EAST/YOLO/YuNet/DNN）
+├─ verify_models.sh            # モデルサイズ検証（しきい値調整済み）
+├─ regression.sh               # オフラインでの回帰テスト用bashコマンド
+└─ regression_online.sh        # オンラインでの回帰テスト用bashコマンド
 ```
 
+# .env例
+## === モデルパス ===（fetch_models.shの配置先）<br>
+EAST_MODEL_PATH=models/frozen_east_text_detection.pb <br>
+YUNET_MODEL_PATH=models/face_detection_yunet_2023mar.onnx <br>
+HAAR_MODEL_PATH=models/haarcascade_frontalface_default.xml <br>
+YOLO_DET_PATH=models/yolov8n.pt <br>
+YOLO_SEG_PATH=models/yolov8n-seg.pt <br>
 
+## === モード ===
+MODE=offline   online にしたい時はフォームで mode=online でもOK <br>
+ONLINE_FALLBACK_OFFLINE=1 <br>
 
-# .env例と依存
-既定は offline。オンラインにしたい時はフォーム側で mode=online を渡してもOK<br>
-MODE=offline　<br>
-ONLINE_FALLBACK_OFFLINE=1
-
-## オンライン（Gemini）
+## === オンライン(Gemini) ===
 GEMINI_API_KEY=xxxxx_your_key_xxxxx <br>
 GEMINI_IMAGE_MODEL=gemini-2.5-flash-image-preview <br>
-GEMINI_API_BASE=https://generativelanguage.googleapis.com/v1beta
+GEMINI_API_BASE=https://generativelanguage.googleapis.com/v1beta <br>
 
-## オフラインOCR
-OCR_BACKEND=tesseract        <br>
-TESS_LANG=eng                # 日本語OCRするなら jpn+eng に
+## === 顔検出バックエンド（haar | yunet | yolo | dnn）=== 
+FACE_BACKEND=haar <br>
+
+## === テキスト検出/認識（tesseract | east）===
+TEXT_BACKEND=tesseract <br>
+TESS_LANG=eng       日本語OCRするなら jpn+eng（要 tesseract-lang） <br>
+
+## === ローカルモデルパス ===
+EAST_MODEL_PATH=models/frozen_east_text_detection.pb <br>
+YUNET_MODEL_PATH=models/face_detection_yunet_2023mar.onnx <br>
+HAAR_MODEL_PATH=models/haarcascade_frontalface_default.xml <br>
+YOLO_DET_PATH=models/yolov8n.pt <br>
+DNN_CAFFE_PROTO=models/deploy.prototxt <br>
+DNN_CAFFE_MODEL=models/res10_300x300_ssd_iter_140000.caffemodel <br>
+
 
 ## 依存
-brew install tesseract            # macOS（英語OCR）
-## 日本語のOCRしたい場合
-brew install tesseract-lang       # jpn などの追加辞書
+brew install tesseract   macOS（英語OCR） <br>
+## 日本語のOCRしたい場合 
+brew install tesseract-lang jpn などの追加辞書 <br>
 
 ## 起動
 PYTHONPATH="$(pwd)" uvicorn app.main:app \ <br>
   --host 127.0.0.1 --port 8000 --env-file .env --reload
+
+## オフラインのモデル指定用簡単コマンド
+scripts/devserve.sh モデル名
