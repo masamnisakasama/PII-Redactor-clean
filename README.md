@@ -8,6 +8,7 @@
 
 ## 内容
 - 基本的には旧版と同じです
+- Ragにより入力したデータのPIIを自然言語ベースで指示してリダクトしてくれる機能を予定しています
 - 画像の **顔** と **テキストPII**（メール/電話/ID/住所など）をマスク
 - **モード**: オフライン　テキスト（OpenCV/Tesseract） 顔検出 (haar|yunet|dnn|yolo） オンライン（Gemini）を切替
 - **オンライン顔変換**: スタイル選択（`synthetic/anime/cartoon/emoji/pixel/old/3d/blur`）
@@ -33,7 +34,20 @@
 ├─ routers
 │  ├─ redact.py                 # /redact/replace (リダクト用エンドポイント)
 │  ├─ health.py                 # /health,/capabilities
-│  └─ diag.py                   # /diag 
+│  ├─ diag.py                   # /diag 
+│  ├─ rag.py                    # /rag/offline/*（reindex/ask のRAG API）
+│  ├─ policy.py                 # /policy/resolve（自然文→CSV 変換）
+│  └─ compose.py                # /compose/resolve_then_redact（自然文→即リダクト）
+├─ rag
+│  ├─ __init__.py
+│  ├─ common
+│  │  ├─ __init__.py
+│  │  └─ textsplit.py           # チャンク分割設定（LangChain TextSplitter）
+│  └─ offline
+│     ├─ __init__.py
+│     ├─ ingest.py              # 索引作成（FAISSに保存）
+│     ├─ retriever.py           # 検索（MMRで関連文脈取得）
+│     └─ policy.py              # 自然文→ポリシーCSV（辞書ベース）
 └─ main.py
 
 /models                           # 事前DLモデル置き場（scriptsで取得）
@@ -43,14 +57,20 @@
 ├─ frozen_east_text_detection.pb               # EAST (PB)
 ├─ haarcascade_frontalface_default.xml         # Haar
 ├─ yolov8n.pt                                   # YOLOv8 (det)
-└─ yolov8n-seg.pt                               # YOLOv8 (seg, 任意)
+├─ yolov8n-seg.pt                               # YOLOv8 (seg, 任意)
+└─ animegan
+   ├─ AnimeGANv2_Hayao.onnx     # AnimeGAN（Hayao）
+   └─ face_paint_512_v2_0.onnx  # AnimeGAN（face paint）
 
 /scripts
 ├─ devserve.sh                 # FACE_BACKEND 指定でuvicorn起動
 ├─ fetch_models.sh             # モデル一括DL（EAST/YOLO/YuNet/DNN）
 ├─ verify_models.sh            # モデルサイズ検証（しきい値調整済み）
 ├─ regression.sh               # オフラインでの回帰テスト用bashコマンド
-└─ regression_online.sh        # オンラインでの回帰テスト用bashコマンド
+├─ regression_online.sh        # オンラインでの回帰テスト用bashコマンド
+├─ fix_pii_redactor.py         # 旧実装からの移送補助スクリプト
+└─ patch_ocr_bbox.sh           # OCR矩形の変換/補正パッチ適用
+
 ```
 
 # .env例
